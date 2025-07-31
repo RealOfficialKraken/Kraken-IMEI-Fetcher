@@ -33,10 +33,8 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         return new Promise(res => setTimeout(res, ms));
       }
 
-      async function bruteForceClickCheckButton() {
-        const timeout = 10000;
-        const interval = 500;
-        const start = Date.now();
+      async function bruteForceClickCheckButton(timeoutLimit = 10000) {
+        const startTime = Date.now();
 
         function getButton() {
           return document.querySelector('input.btn[type="submit"][value="check"]');
@@ -84,8 +82,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
           return false;
         }
 
-        const startTime = Date.now();
-        const timeoutLimit = 10000;
         while (Date.now() - startTime < timeoutLimit) {
           const btn = getButton();
           if (!btn) return;
@@ -104,7 +100,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         return !!found;
       }
 
-      async function watchForDeviceInfo(maxTime = 20000) {
+      async function watchForDeviceInfo(maxTime = 10000) {
         const keywords = ["APPLE", "SAMSUNG", "GOOGLE", "GALAXY", "PIXEL", "ANDROID"];
         const start = Date.now();
 
@@ -143,11 +139,39 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
           await delay(500);
         }
+
+        await browser.storage.local.set({
+          recaptchaDetected: false,
+          deviceInfo: null,
+          usbType: null,
+          releaseYear: null,
+          timedOut: true
+        });
       }
+
+      chrome.storage.onChanged.addListener(async (changes, area) => {
+          if (area !== 'local') return;
+
+          const keys = Object.keys(changes);
+          const infoKeys = ['deviceInfo', 'usbType', 'releaseYear'];
+
+          const anyInfoUpdated = infoKeys.some(key => changes[key]?.newValue);
+          if (!anyInfoUpdated) return;
+
+          const { imeiTabId } = await chrome.storage.local.get('imeiTabId');
+          if (imeiTabId) {
+            try {
+              await chrome.tabs.remove(imeiTabId);
+            } catch (err) {
+              console.warn('Failed to close IMEI tab:', err);
+            }
+            await chrome.storage.local.remove('imeiTabId');
+          }
+        });
 
       (async () => {
         try {
-          const recaptcha = await detectRecaptcha(); // sets flag
+          const recaptcha = await detectRecaptcha();
 
           const input = document.querySelector('input[type="text"]');
           if (input && input.value !== imei) {
@@ -157,7 +181,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
           }
 
           await bruteForceClickCheckButton();
-          await watchForDeviceInfo(); // even if button failed or CAPTCHA appeared
+          await watchForDeviceInfo(10000);
         } catch (err) {
           console.error("Automation error:", err);
         }

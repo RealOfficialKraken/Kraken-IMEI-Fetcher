@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await browser.storage.local.remove('imeiTabId');
     }
   } else if (recaptchaDetected) {
-    resultDisplay.innerHTML = `<p style="color:red;">Brute Forcing CAPTCHA...</p>`;
+    resultDisplay.innerHTML = `<p style="color:red;">Loading... Do not close out of this window.</p>`;
     // Hide buttons since info is not available
     copyButton.classList.add('hidden');
     copyImeiButton.classList.add('hidden');
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   ]);
 
   // Update UI immediately
-  resultDisplay.innerHTML = `<p>Waiting for result...</p>`;
+  resultDisplay.innerHTML = `<p>Loading... Do not close out of this window.</p>`;
 
   // Save IMEI and trigger background process
   await browser.storage.local.set({ imei: inputImei });
