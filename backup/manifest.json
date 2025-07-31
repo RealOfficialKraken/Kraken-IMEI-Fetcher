@@ -14,19 +14,13 @@
     "scripting",
     "activeTab",
     "storage"
-  ],
+    ],
   "host_permissions": [
-    "<all_urls>"
+    "https://api-client.imei.org/*"
   ],
   "background": {
     "scripts": ["background.js"]
-  },
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "therealofficialmatt@gmail.com",
-      "strict_min_version": "58.0"
-    }
-  },
+    },
   "icons": {
     "48": "icons/icon-48.png",
     "96": "icons/icon-96.png"

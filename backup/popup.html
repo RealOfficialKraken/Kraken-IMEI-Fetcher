@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krakens IMEI Checker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+        body{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            width: 350px;
+            background-image: linear-gradient(to bottom, #69f5fa, #41e9b1);
+            flex-direction: column;
+            gap: 1rem;
+            background-repeat: no-repeat;
+            font-family: 'Fira Sans', sans-serif;
+        }
+        #imeiInput {
+            width: 80%;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border-radius: 0.65rem;
+        }
+        #checkButton {
+            width: 80%;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border-radius: 0.65rem;
+            cursor: pointer;
+            border: none;
+            background-color: #00ff22;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        #checkButton:hover {
+            background-color: #00cc1a;
+        }
+        .input-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+        }
+    </style>
+    <script src="popup.js" defer></script>
+</head>
+<body>
+    <h1 class="text-xl font-bold mb-2">Krakens IMEI Checker</h1>
+    <div class="input-container">
+        <input id="imeiInput" type="text" maxlength="15" placeholder="Enter IMEI number (15 Digits) Or Serial Number" class="border p-2 rounded w-full" />
+        <div id="copyContainer" style="display:none; cursor: pointer; background: white; padding: 0.5rem; border-radius: 0.5rem; font-weight: bold;">
+            Click to Copy IMEI
+        </div>
+    </div>
+    <button id="checkButton" class="bg-blue-500 text-white p-2 rounded w-full hover:bg-blue-600" style="padding: 5px 50px; font-size: 14pt;">Check</button>
+    <div id="result" class="mt-4 p-2 border rounded min-h-[100px]"></div>
+</body>
+</html>
