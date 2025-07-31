@@ -10,7 +10,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 350px;
+      width: 550px;
       background-image: linear-gradient(to bottom, #7b237e, #5241e9);
       flex-direction: column;
       gap: 1rem;
@@ -19,13 +19,13 @@
       color: white;
     }
     #imeiInput {
-      width: 80%;
+      width: 60%;
       padding: 0.5rem;
       font-size: 1rem;
       border-radius: 0.65rem;
     }
     #checkButton, #copyButton {
-      width: 80%;
+      width: 60%;
       padding: 0.5rem;
       font-size: 1rem;
       border-radius: 0.65rem;
@@ -45,43 +45,45 @@
       width: 100%;
     }
     #copyButton, #copyImeiButton, #clearButton {
-  width: 80%;
-  padding: 0.5rem;
-  font-size: 1rem;
-  border-radius: 0.65rem;
-  cursor: pointer;
-  border: none;
-  background-color: #ff00ff;
-  color: white;
-  transition: background-color 0.3s ease;
-}
+      width: 60%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 0.65rem;
+      cursor: pointer;
+      border: none;
+      background-color: #ff00ff;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
 
-#copyButton:hover, #copyImeiButton:hover, #clearButton:hover {
-  background-color: #5a00c1;
-}
-.plug{
-  text-decoration: none;
-  color: rgb(255, 196, 0);
-  font-weight: bold;
-  font-size: 0.9rem;
-  margin-top: 10px;
-}
-.plug:hover{
-  color: #fdff70;
-}
+    #copyButton:hover, #copyImeiButton:hover, #clearButton:hover {
+      background-color: #5a00c1;
+    }
+    .plug{
+      color: rgb(255, 196, 0);
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+    .plug:hover{
+      color: #fdff70;
+    }
+    .hidden {
+        display: none;
+      }
   </style>
   <script src="popup.js" defer></script>
 </head>
 <body>
-  <h1>Krakens IMEI Checker</h1>
+  <h1>Kraken IMEI Checker</h1>
   <div class="input-container">
     <input id="imeiInput" type="text" maxlength="15" placeholder="Enter IMEI number" />
   </div>
   <button id="checkButton">Check</button>
   <div id="result"></div>
-  <button id="copyImeiButton">Copy IMEI</button>
-  <button id="copyButton">Copy Model</button>
-  <button id="clearButton">Clear</button>
+  <button id="copyImeiButton" class="hidden">Copy IMEI</button>
+  <button id="copyButton" class="hidden">Copy Model</button>
+  <button id="clearButton" class="hidden">Clear</button>
   <a class="plug" href="https://github.com/RealOfficialKraken" target="_blank" rel="noopener noreferrer">Made By Kraken</a>
 </body>
 

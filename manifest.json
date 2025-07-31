@@ -21,6 +21,13 @@
   "background": {
     "scripts": ["background.js"]
   },
+  "content_scripts": [
+  {
+    "matches": ["https://imeiapi.net/*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }
+],
   "browser_specific_settings": {
     "gecko": {
       "id": "therealofficialmatt@gmail.com",

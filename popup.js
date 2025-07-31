@@ -1,68 +1,118 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const input = document.getElementById('imeiInput');
+  const imeiInput = document.getElementById('imeiInput');
+  const checkButton = document.getElementById('checkButton');
   const resultDisplay = document.getElementById('result');
-  const copyBtn = document.getElementById('copyButton');
-  const copyImeiBtn = document.getElementById('copyImeiButton');
-  const clearBtn = document.getElementById('clearButton');
+  const copyButton = document.getElementById('copyButton');
+  const copyImeiButton = document.getElementById('copyImeiButton');
+  const clearButton = document.getElementById('clearButton');
 
-  const { imei, deviceInfo, usbType, releaseYear } = await browser.storage.local.get([
-    'imei', 'deviceInfo', 'usbType', 'releaseYear'
+  // Load IMEI immediately
+  const { imei } = await browser.storage.local.get('imei');
+  if (imei) imeiInput.value = imei;
+
+  // Unified info display
+  async function displayInfo() {
+  const {
+    imei,
+    deviceInfo,
+    usbType,
+    releaseYear,
+    recaptchaDetected,
+    imeiTabId
+  } = await browser.storage.local.get([
+    'imei', 'deviceInfo', 'usbType', 'releaseYear', 'recaptchaDetected', 'imeiTabId'
   ]);
 
-  if (imei) input.value = imei;
+  const hasInfo = !!deviceInfo;
 
-  let html = '';
-  if (deviceInfo) {
-    html += `<h3 id="deviceText">${deviceInfo}</h3>`;
+  if (hasInfo) {
+    let html = `<h3>${deviceInfo}</h3>`;
     if (imei) html += `<p><strong>IMEI:</strong> ${imei}</p>`;
-  }
-  if (usbType) html += `<p><strong>USB:</strong> ${usbType}</p>`;
-  if (releaseYear) html += `<p><strong>Release Year:</strong> ${releaseYear}</p>`;
-
-  if (html) {
+    if (usbType) html += `<p><strong>USB:</strong> ${usbType}</p>`;
+    if (releaseYear) html += `<p><strong>Year:</strong> ${releaseYear}</p>`;
     resultDisplay.innerHTML = html;
-    copyBtn.style.display = 'block';
+
+    // Show action buttons
+    copyButton.classList.remove('hidden');
+    copyImeiButton.classList.remove('hidden');
+    clearButton.classList.remove('hidden');
+
+    // Close tab if still open
+    if (imeiTabId) {
+      try {
+        await browser.tabs.remove(imeiTabId);
+      } catch (err) {}
+      await browser.storage.local.remove('imeiTabId');
+    }
+  } else if (recaptchaDetected) {
+    resultDisplay.innerHTML = `<p style="color:red;">Brute Forcing CAPTCHA...</p>`;
+    // Hide buttons since info is not available
+    copyButton.classList.add('hidden');
+    copyImeiButton.classList.add('hidden');
+    clearButton.classList.add('hidden');
+  } else {
+    resultDisplay.innerHTML = `<p></p>`;
+    copyButton.classList.add('hidden');
+    copyImeiButton.classList.add('hidden');
+    clearButton.classList.add('hidden');
   }
+}
 
-  copyBtn.addEventListener('click', async () => {
-    let textToCopy = '';
-    if (deviceInfo) {
-      const match = deviceInfo.match(/\(([^)]+)\)/);
-      textToCopy = match ? match[1] : deviceInfo;
-    }
-    await navigator.clipboard.writeText(textToCopy);
-    copyBtn.textContent = 'Copied!';
-    setTimeout(() => (copyBtn.textContent = 'Copy Info'), 1000);
-  });
 
-  copyImeiBtn.addEventListener('click', async () => {
-    if (imei) {
-      await navigator.clipboard.writeText(imei);
-      copyImeiBtn.textContent = 'IMEI Copied!';
-      setTimeout(() => (copyImeiBtn.textContent = 'Copy IMEI'), 1000);
+
+  await displayInfo(); // initial render
+
+  browser.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && (
+      changes.deviceInfo || changes.usbType || changes.releaseYear || changes.recaptchaDetected
+    )) {
+      displayInfo();
     }
   });
 
-  clearBtn.addEventListener('click', async () => {
-    await browser.storage.local.remove(['imei', 'deviceInfo', 'usbType', 'releaseYear']);
-    input.value = '';
-    resultDisplay.innerHTML = '';
-    copyBtn.style.display = 'none';
-    copyBtn.textContent = 'Copy Info';
-    copyImeiBtn.textContent = 'Copy IMEI';
-  });
-});
-
-
-
-document.getElementById('checkButton').addEventListener('click', async () => {
-  const imei = document.getElementById('imeiInput').value.trim();
-
-  if (!/^\d{15}$/.test(imei)) {
+  checkButton.addEventListener('click', async () => {
+  const inputImei = imeiInput.value.trim();
+  if (!/^\d{15}$/.test(inputImei)) {
     alert("Please enter a valid 15-digit IMEI number.");
     return;
   }
 
-  await browser.storage.local.set({ imei });
-  browser.runtime.sendMessage({ action: 'checkIMEI', imei });
+  // Clear previous result-related data
+  await browser.storage.local.remove([
+    'deviceInfo',
+    'usbType',
+    'releaseYear',
+    'recaptchaDetected'
+  ]);
+
+  // Update UI immediately
+  resultDisplay.innerHTML = `<p>Waiting for result...</p>`;
+
+  // Save IMEI and trigger background process
+  await browser.storage.local.set({ imei: inputImei });
+  browser.runtime.sendMessage({ action: 'checkIMEI', imei: inputImei });
+});
+
+
+  copyButton.addEventListener('click', async () => {
+    const { deviceInfo } = await browser.storage.local.get('deviceInfo');
+    if (deviceInfo) {
+      const match = deviceInfo.match(/\(([^)]+)\)/);
+      const toCopy = match ? match[1] : deviceInfo;
+      await navigator.clipboard.writeText(toCopy);
+    }
+  });
+
+  copyImeiButton.addEventListener('click', async () => {
+    const { imei } = await browser.storage.local.get('imei');
+    if (imei) {
+      await navigator.clipboard.writeText(imei);
+    }
+  });
+
+  clearButton.addEventListener('click', async () => {
+    await browser.storage.local.clear();
+    resultDisplay.innerHTML = '';
+    imeiInput.value = '';
+  });
 });
