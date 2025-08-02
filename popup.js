@@ -2,117 +2,145 @@ document.addEventListener('DOMContentLoaded', async () => {
   const imeiInput = document.getElementById('imeiInput');
   const checkButton = document.getElementById('checkButton');
   const resultDisplay = document.getElementById('result');
-  const copyButton = document.getElementById('copyButton');
   const copyImeiButton = document.getElementById('copyImeiButton');
   const clearButton = document.getElementById('clearButton');
 
-  // Load IMEI immediately
-  const { imei } = await browser.storage.local.get('imei');
+  const displayInfo = async () => {
+    const {
+      imei,
+      resultText,
+      object,
+      recaptchaDetected,
+      imeiTabId
+    } = await chrome.storage.local.get([
+      'imei', 'resultText', 'object', 'recaptchaDetected', 'imeiTabId'
+    ]);
+
+    if (resultText && object) {
+      let html = `<h3>${resultText}</h3>`;
+      if (imei) html += `<p><strong>IMEI:</strong> ${imei}</p>`;
+
+      for (const key in object) {
+        if (!object[key]) continue;
+        const label = key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, c => c.toUpperCase());
+        html += `<p><strong>${label}:</strong> ${object[key]}</p>`;
+      }
+
+      resultDisplay.innerHTML = html;
+      copyImeiButton.classList.remove('hidden');
+      clearButton.classList.remove('hidden');
+
+      if (imeiTabId) {
+        try {
+          await chrome.tabs.remove(imeiTabId);
+        } catch (err) {}
+        await chrome.storage.local.remove('imeiTabId');
+      }
+    } else if (recaptchaDetected) {
+      resultDisplay.innerHTML = `<p style="color:red;">Loading... Do not close out of this window.</p>`;
+      copyImeiButton.classList.add('hidden');
+      clearButton.classList.add('hidden');
+    } else {
+      resultDisplay.innerHTML = `<p></p>`;
+      copyImeiButton.classList.add('hidden');
+      clearButton.classList.add('hidden');
+    }
+  };
+
+  // Initial display
+  await displayInfo();
+
+  const { imei } = await chrome.storage.local.get('imei');
   if (imei) imeiInput.value = imei;
 
-  // Unified info display
-  async function displayInfo() {
-  const {
-    imei,
-    deviceInfo,
-    usbType,
-    releaseYear,
-    recaptchaDetected,
-    imeiTabId
-  } = await browser.storage.local.get([
-    'imei', 'deviceInfo', 'usbType', 'releaseYear', 'recaptchaDetected', 'imeiTabId'
-  ]);
-
-  const hasInfo = !!deviceInfo;
-
-  if (hasInfo) {
-    let html = `<h3>${deviceInfo}</h3>`;
-    if (imei) html += `<p><strong>IMEI:</strong> ${imei}</p>`;
-    if (usbType) html += `<p><strong>USB:</strong> ${usbType}</p>`;
-    if (releaseYear) html += `<p><strong>Year:</strong> ${releaseYear}</p>`;
-    resultDisplay.innerHTML = html;
-
-    // Show action buttons
-    copyButton.classList.remove('hidden');
-    copyImeiButton.classList.remove('hidden');
-    clearButton.classList.remove('hidden');
-
-    // Close tab if still open
-    if (imeiTabId) {
-      try {
-        await browser.tabs.remove(imeiTabId);
-      } catch (err) {}
-      await browser.storage.local.remove('imeiTabId');
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && (changes.resultText || changes.object || changes.recaptchaDetected)) {
+      displayInfo();
     }
-  } else if (recaptchaDetected) {
-    resultDisplay.innerHTML = `<p style="color:red;">Loading... Do not close out of this window.</p>`;
-    // Hide buttons since info is not available
-    copyButton.classList.add('hidden');
-    copyImeiButton.classList.add('hidden');
-    clearButton.classList.add('hidden');
-  } else {
-    resultDisplay.innerHTML = `<p></p>`;
-    copyButton.classList.add('hidden');
-    copyImeiButton.classList.add('hidden');
-    clearButton.classList.add('hidden');
-  }
-}
+  });
 
-
-
-  await displayInfo(); // initial render
-
-  browser.storage.onChanged.addListener((changes, area) => {
-    if (area === 'local' && (
-      changes.deviceInfo || changes.usbType || changes.releaseYear || changes.recaptchaDetected
-    )) {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'updateIMEI') {
       displayInfo();
     }
   });
 
   checkButton.addEventListener('click', async () => {
-  const inputImei = imeiInput.value.trim();
-  if (!/^\d{15}$/.test(inputImei)) {
-    alert("Please enter a valid 15-digit IMEI number.");
-    return;
-  }
+    const inputImei = imeiInput.value.trim();
+    if (!/^\d{15}$/.test(inputImei)) {
+      alert("Please enter a valid 15-digit IMEI number.");
+      return;
+    }
 
-  // Clear previous result-related data
-  await browser.storage.local.remove([
-    'deviceInfo',
-    'usbType',
-    'releaseYear',
-    'recaptchaDetected'
-  ]);
+    resultDisplay.innerHTML = `<p>Checking IMEI...</p>`;
+    await chrome.storage.local.set({ imei: inputImei });
 
-  // Update UI immediately
-  resultDisplay.innerHTML = `<p>Loading... Do not close out of this window.</p>`;
+    const url = `https://alpha.imeicheck.com/api/modelBrandName?imei=${inputImei}&format=json`;
 
-  // Save IMEI and trigger background process
-  await browser.storage.local.set({ imei: inputImei });
-  browser.runtime.sendMessage({ action: 'checkIMEI', imei: inputImei });
-});
+    let attempt = 0;
+    let success = false;
 
+    while (attempt < 2 && !success) {
+      attempt++;
 
-  copyButton.addEventListener('click', async () => {
-    const { deviceInfo } = await browser.storage.local.get('deviceInfo');
-    if (deviceInfo) {
-      const match = deviceInfo.match(/\(([^)]+)\)/);
-      const toCopy = match ? match[1] : deviceInfo;
-      await navigator.clipboard.writeText(toCopy);
+      try {
+        const response = await fetch(url);
+        const contentType = response.headers.get('content-type');
+
+        if (!contentType || contentType.includes('text/html')) {
+          console.log('Cloudflare protection triggered. Opening manual solve tab.');
+          resultDisplay.innerHTML = `
+            <p style="color:red;">Cloudflare protection detected. Please solve the challenge in the new tab.</p>
+          `;
+
+          const tab = await chrome.tabs.create({ url, active: false });
+          await chrome.storage.local.set({
+            recaptchaDetected: true,
+            imeiTabId: tab.id
+          });
+          return;
+        }
+
+        const data = await response.json();
+        const { result, object } = data;
+
+        if (!result || !object) {
+          console.warn(`Attempt ${attempt}: No results found for this IMEI.`);
+          continue;
+        }
+
+        await chrome.storage.local.set({
+          resultText: result,
+          object
+        });
+
+        success = true;
+        await displayInfo();
+      } catch (err) {
+        console.error(`Attempt ${attempt}: IMEI API Error:`, err);
+      }
+    }
+
+    if (!success) {
+      resultDisplay.innerHTML = `<p style="color:red;">Failed to retrieve IMEI data after 2 attempts.</p>`;
     }
   });
 
   copyImeiButton.addEventListener('click', async () => {
-    const { imei } = await browser.storage.local.get('imei');
+    const { imei } = await chrome.storage.local.get('imei');
     if (imei) {
       await navigator.clipboard.writeText(imei);
     }
   });
 
+
   clearButton.addEventListener('click', async () => {
-    await browser.storage.local.clear();
+    await chrome.storage.local.clear();
     resultDisplay.innerHTML = '';
     imeiInput.value = '';
+    copyImeiButton.classList.add('hidden');
+    clearButton.classList.add('hidden');
   });
+
+  await chrome.storage.local.remove(['recaptchaDetected']);
 });

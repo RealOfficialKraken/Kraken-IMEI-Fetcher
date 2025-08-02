@@ -1,41 +1,27 @@
 {
   "manifest_version": 3,
-  "name": "IMEI Checker",
+  "name": "Kraken's IMEI Checker",
   "version": "1.0",
-  "description": "Check IMEI numbers quickly and effectively.",
+  "description": "The fastest way to look up make and models via IMEI.",
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "48": "icons/icon-48.png"
-    }
+    "default_popup": "popup.html"
   },
   "permissions": [
     "tabs",
     "scripting",
-    "activeTab",
-    "storage"
+    "storage",
+    "activeTab"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
   "background": {
-    "scripts": ["background.js"]
+    "service_worker": "background.js"
   },
-  "content_scripts": [
-  {
-    "matches": ["https://imeiapi.net/*"],
-    "js": ["content.js"],
-    "run_at": "document_idle"
-  }
-],
   "browser_specific_settings": {
     "gecko": {
       "id": "therealofficialmatt@gmail.com",
       "strict_min_version": "58.0"
     }
-  },
-  "icons": {
-    "48": "icons/icon-48.png",
-    "96": "icons/icon-96.png"
   }
 }
