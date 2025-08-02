@@ -6,46 +6,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   const clearButton = document.getElementById('clearButton');
 
   const displayInfo = async () => {
-    const {
-      imei,
-      resultText,
-      object,
-      recaptchaDetected,
-      imeiTabId
-    } = await chrome.storage.local.get([
-      'imei', 'resultText', 'object', 'recaptchaDetected', 'imeiTabId'
-    ]);
+  const {
+    imei,
+    object,
+    recaptchaDetected,
+    imeiTabId
+  } = await chrome.storage.local.get(['imei', 'object', 'recaptchaDetected', 'imeiTabId']);
 
-    if (resultText && object) {
-      let html = `<h3>${resultText}</h3>`;
-      if (imei) html += `<p><strong>IMEI:</strong> ${imei}</p>`;
+  if (object) {
+    let html = '';
+    if (imei) html += `<p><strong>IMEI:</strong> ${imei}</p>`;
+    if (object.brand) html += `<p><strong>Brand:</strong> ${object.brand}</p>`;
+    if (object.model) html += `<p><strong>Model:</strong> ${object.model}</p>`;
 
-      for (const key in object) {
-        if (!object[key]) continue;
-        const label = key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, c => c.toUpperCase());
-        html += `<p><strong>${label}:</strong> ${object[key]}</p>`;
-      }
-
-      resultDisplay.innerHTML = html;
-      copyImeiButton.classList.remove('hidden');
-      clearButton.classList.remove('hidden');
-
-      if (imeiTabId) {
-        try {
-          await chrome.tabs.remove(imeiTabId);
-        } catch (err) {}
-        await chrome.storage.local.remove('imeiTabId');
-      }
-    } else if (recaptchaDetected) {
-      resultDisplay.innerHTML = `<p style="color:red;">Loading... Do not close out of this window.</p>`;
-      copyImeiButton.classList.add('hidden');
-      clearButton.classList.add('hidden');
-    } else {
-      resultDisplay.innerHTML = `<p></p>`;
-      copyImeiButton.classList.add('hidden');
-      clearButton.classList.add('hidden');
+    // Prefer "name", fallback to "modelName" if "name" is missing
+    if (object.name) {
+      html += `<p><strong>Name:</strong> ${object.name}</p>`;
+    } else if (object.modelName) {
+      html += `<p><strong>Name:</strong> ${object.modelName}</p>`;
     }
-  };
+
+    resultDisplay.innerHTML = html;
+    copyImeiButton.classList.remove('hidden');
+    clearButton.classList.remove('hidden');
+
+    if (imeiTabId) {
+      try {
+        await chrome.tabs.remove(imeiTabId);
+      } catch (err) {}
+      await chrome.storage.local.remove('imeiTabId');
+    }
+  } else if (recaptchaDetected) {
+    resultDisplay.innerHTML = `<p style="color:red;">Fetching IMEI...</p>`;
+    copyImeiButton.classList.add('hidden');
+    clearButton.classList.add('hidden');
+  } else {
+    resultDisplay.innerHTML = `<p></p>`;
+    copyImeiButton.classList.add('hidden');
+    clearButton.classList.add('hidden');
+  }
+};
+
 
   // Initial display
   await displayInfo();

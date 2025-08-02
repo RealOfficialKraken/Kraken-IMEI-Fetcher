@@ -57,6 +57,9 @@
     .hidden {
       display: none;
     }
+    .result-class{
+      font-size: 16pt;
+    }
   </style>
   <script src="popup.js" defer></script>
 </head>
@@ -66,7 +69,7 @@
     <input id="imeiInput" type="text" maxlength="15" placeholder="Enter IMEI number" />
   </div>
   <button id="checkButton">Check</button>
-  <div id="result"></div>
+  <div id="result" class="result-class"></div>
   <button id="copyImeiButton" class="hidden">Copy IMEI</button>
   <button id="clearButton" class="hidden">Clear</button>
   <a class="plug" href="https://github.com/RealOfficialKraken" target="_blank" rel="noopener noreferrer">Made By Kraken</a>

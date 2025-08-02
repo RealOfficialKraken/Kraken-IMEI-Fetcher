@@ -4,7 +4,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   chrome.storage.local.get(['imeiTabId'], async ({ imeiTabId }) => {
     if (tabId !== imeiTabId) return;
 
-    console.log('[BG] Target tab loaded. Executing script to read page content...');
+    console.log('[KIL] Cloudflare Detected. Executing script to read page content...');
 
     chrome.scripting.executeScript({
       target: { tabId },
@@ -19,7 +19,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       const rawText = results?.[0]?.result;
 
       if (!rawText) {
-        console.error('[BG] Could not read page content.');
+        console.error('[KIL] Could not read page content.');
         return;
       }
 
@@ -27,12 +27,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       try {
         parsed = JSON.parse(rawText);
       } catch (err) {
-        console.error('[BG] Failed to parse JSON:', err, 'Raw text:', rawText);
+        console.error('[KIL] Failed to parse JSON:', err, 'Raw text:', rawText);
         return;
       }
 
       if (!parsed.object || !parsed.result) {
-        console.warn('[BG] JSON missing expected fields:', parsed);
+        console.warn('[KIL] JSON missing expected fields:', parsed);
         return;
       }
 
@@ -45,7 +45,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
       chrome.runtime.sendMessage({ action: 'updateIMEI' });
 
-      console.log('[BG] Data saved. Closing tab.');
+      console.log('[KIL] Data saved. Closing tab.');
       chrome.tabs.remove(tabId);
     });
   });
