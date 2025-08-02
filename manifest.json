@@ -4,16 +4,21 @@
   "version": "1.0",
   "description": "The fastest way to look up make and models via IMEI.",
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "logo.png"
+    }
+  },
+  "icons": {
+    "128": "logo.png"
   },
   "permissions": [
     "tabs",
     "scripting",
-    "storage",
-    "activeTab"
+    "storage"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "https://alpha.imeicheck.com/*"
   ],
   "background": {
     "service_worker": "background.js"

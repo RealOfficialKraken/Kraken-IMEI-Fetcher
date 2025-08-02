@@ -5,6 +5,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const copyImeiButton = document.getElementById('copyImeiButton');
   const clearButton = document.getElementById('clearButton');
 
+  document.getElementById('info-button').addEventListener('click', () => {
+  const popover = document.getElementById('info-popover');
+  const isVisible = popover.style.visibility === 'visible';
+  popover.style.visibility = isVisible ? 'hidden' : 'visible';
+  popover.style.opacity = isVisible ? '0' : '1';
+});
+
+
+
+
   const displayInfo = async () => {
   const {
     imei,
@@ -41,7 +51,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyImeiButton.classList.add('hidden');
     clearButton.classList.add('hidden');
   } else {
-    resultDisplay.innerHTML = `<p></p>`;
+    const { resultText } = await chrome.storage.local.get('resultText');
+    if (resultText) {
+      resultDisplay.innerHTML = `<p style="color:red;">${resultText}</p>`;
+    } else {
+      resultDisplay.innerHTML = `<p></p>`;
+    }
     copyImeiButton.classList.add('hidden');
     clearButton.classList.add('hidden');
   }
@@ -91,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!contentType || contentType.includes('text/html')) {
           console.log('Cloudflare protection triggered. Opening manual solve tab.');
           resultDisplay.innerHTML = `
-            <p style="color:red;">Cloudflare protection detected. Please solve the challenge in the new tab.</p>
+            <p style="color:red;">Cloudflare protection detected. Please wait.</p>
           `;
 
           const tab = await chrome.tabs.create({ url, active: false });
@@ -103,6 +118,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const data = await response.json();
+
+        if (data.status === "rejected" && data.result === "INVALID IMEI") {
+        await chrome.storage.local.set({
+          resultText: "Invalid IMEI provided.",
+          object: null
+        });
+        await displayInfo();
+        return;
+      }
+
         const { result, object } = data;
 
         if (!result || !object) {

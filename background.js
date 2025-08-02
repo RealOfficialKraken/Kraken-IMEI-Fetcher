@@ -26,6 +26,18 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       let parsed;
       try {
         parsed = JSON.parse(rawText);
+        if (parsed.status === "rejected" && parsed.result === "INVALID IMEI") {
+        console.warn('[KIL] Invalid IMEI detected from fallback tab.');
+        await chrome.storage.local.set({
+          resultText: parsed.result,
+          object: null,
+          recaptchaDetected: false,
+          imeiTabId: null
+        });
+        chrome.runtime.sendMessage({ action: 'updateIMEI' });
+        chrome.tabs.remove(tabId);
+        return;
+      }
       } catch (err) {
         console.error('[KIL] Failed to parse JSON:', err, 'Raw text:', rawText);
         return;
