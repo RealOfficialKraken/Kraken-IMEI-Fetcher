@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Kraken's IMEI Checker",
-  "version": "1.0",
+  "name": "Kraken's IMEI Lookup",
+  "version": "1.11",
   "description": "The fastest way to look up make and models via IMEI.",
   "action": {
     "default_popup": "popup.html",

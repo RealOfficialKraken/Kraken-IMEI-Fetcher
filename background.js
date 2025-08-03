@@ -37,7 +37,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         chrome.runtime.sendMessage({ action: 'updateIMEI' });
         chrome.tabs.remove(tabId);
         return;
-      }
+}
       } catch (err) {
         console.error('[KIL] Failed to parse JSON:', err, 'Raw text:', rawText);
         return;

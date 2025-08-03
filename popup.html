@@ -129,7 +129,7 @@
     .popover-info {
       position: absolute;
       top: 50px;
-      right: 10px;
+      right: 10.5px;
       width: 515px;
       background-color: rgba(0, 0, 0, 0.8);
       color: white;
@@ -155,10 +155,9 @@
   <center>
     <p>Thanks for using Kraken's IMEI Lookup Extension!</p>
     <p>This tool fetches an API URL for quick lookups via an IMEI to result the make/model of a device.</p>
-    <p>Upon clicking the "check" button, the script will fetch for the results. If the result fails the first time, it will assume CloudFlare or CAPTCHA is active, and open a new tab. You shouldn't have to click off of this extension window.</p>
+    <p>Upon clicking the "check" button, the script will fetch for the results. If the result fails the first time, it will assume CloudFlare or reCAPTCHA is active, and open a new tab. You shouldn't have to click off of this extension window.</p>
     <p>If the result fails to parse again after the check, or if the request returns invalid, it assumes the IMEI is invalid.</p>
-    <p style="color: rgb(0, 255, 0);">The rate is limited to 30 requests per minute.</p>
-    <p style="color: rgb(0, 255, 0)">Right now, you need CloudFlare verification each time the requests are refreshed (1 minute).</p>
+    <p style="color: rgb(0, 255, 0);">Limited to 30 requests per minute. After 30 requests, it should redirect you to complete CloudFlare CAPTCHA.</p>
     </center>
 </div>
   <div class="bodycard">

@@ -96,7 +96,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   await chrome.storage.local.remove(['object', 'resultText', 'recaptchaDetected']);
   await chrome.storage.local.set({ imei: inputImei });
 
-  const url = `https://alpha.imeicheck.com/api/modelBrandName?imei=${inputImei}&format=json`;
+  const api_key = getApiKey()
+
+  function getApiKey() {
+    const encoded = "M0FENS1GMkIwLTZDOTgtMzRBMS01NEVDLTgxVkM=";
+    return atob(encoded);
+  }
+
+  const url = `https://alpha.imeicheck.com/api/free_with_key/modelBrandName?key=${api_key}&imei=${inputImei}&format=json`;
 
   let attempt = 0;
   let successfulFetch = false;
