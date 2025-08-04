@@ -40,20 +40,21 @@
 
     body {
       width: 550px;
-      background-image: conic-gradient(from var(--angle), #00ff2a, #5d4bff, #00ff2a);
+      background-image: conic-gradient(from var(--angle), #00ffea, #8400ff, #00ffea);
       color: white;
       border-radius: 20px;
-      animation: gradient-spin 9s linear infinite;
+      animation: gradient-spin 14s linear infinite;
     }
     .bodycard{
       display: flex;
       justify-content: center;
       align-items: center;
-      background-image: linear-gradient(to bottom, #3f3f3f, #2b2b2b);
+      background-color: rgba(13, 49, 41, 0.7);
       width: 550px;
       border-radius: 10px;
       position: relative;
       flex-direction: column;
+      backdrop-filter: blur(21rem);
       gap: 1rem;
       font-family: 'Fira Sans', sans-serif;
       padding-bottom: 15px;
@@ -85,13 +86,13 @@
       width: 100%;
     }
     .plug {
-      color: rgb(255, 196, 0);
+      color: rgb(0, 255, 234);
       font-weight: bold;
       font-size: 0.9rem;
       margin-top: 10px;
     }
     .plug:hover {
-      color: #fdff70;
+      color: #70ff8f;
     }
     .hidden {
       display: none;
@@ -131,7 +132,7 @@
       top: 50px;
       right: 10.5px;
       width: 515px;
-      background-color: rgba(0, 0, 0, 0.8);
+      background-color: rgb(0, 0, 0);
       color: white;
       border-radius: 10px;
       padding: 8px 15px;
